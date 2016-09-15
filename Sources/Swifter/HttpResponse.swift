@@ -31,16 +31,20 @@ public enum HttpResponseBody {
             switch self {
             case .json(let object):
                 switch object {
+
                 case let array as Array<Any?>:
                     let data = [UInt8](array.asJson().utf8)
                     return (data.count, {
                         try $0.write(data)
                     })
-                case let dict as Dictionary<String, Any?>:
+
+              //case let dict as Dictionary<String, Any?>:  // did this one ever work???
+                case let dict as Dictionary<String, Any>:
                     let data = [UInt8](dict.asJson().utf8)
                     return (data.count, {
                         try $0.write(data)
                     })
+
                 default:
                     let data = [UInt8]("Serialisation error: Can't convert \(object) to JSON.".utf8)
                     return (data.count, {
