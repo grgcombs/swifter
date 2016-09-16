@@ -68,10 +68,15 @@ public class HttpServer: HttpServerIO {
     }
     
     public var notFoundHandler: ((HttpRequest) -> HttpResponse)?
-    
+
+    public var logRequestHandler: ((_ request: HttpRequest, _ message: String?) -> (Void))?
+
     public var middleware = Array<(HttpRequest) -> HttpResponse?>()
 
     override public func dispatch(_ request: HttpRequest) -> ([String:String], (HttpRequest) -> HttpResponse) {
+        if let requestLogger = logRequestHandler {
+            requestLogger(request, nil)
+        }
         for layer in middleware {
             if let response = layer(request) {
                 return ([:], { _ in response })
