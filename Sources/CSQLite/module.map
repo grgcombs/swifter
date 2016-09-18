@@ -1,4 +1,5 @@
-module CSQLite {
-    umbrella header "include/sqlite.h"
+framework module CSQLite {
+    umbrella header "sqlite.h"
+    link framework "CSQLite"
     export *
 }
