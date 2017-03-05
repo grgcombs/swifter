@@ -83,9 +83,10 @@ public enum HttpResponseBody {
 }
 
 public enum HttpResponse {
-    
     case switchProtocols([String: String], (Socket) -> Void)
-    case ok(HttpResponseBody), created, accepted
+    case ok(HttpResponseBody,String?)
+    case created(HttpResponseBody), accepted
+    case notModified
     case movedPermanently(String)
     case badRequest(HttpResponseBody?), unauthorized, forbidden, notFound
     case internalServerError
@@ -94,10 +95,11 @@ public enum HttpResponse {
     func statusCode() -> Int {
         switch self {
         case .switchProtocols(_, _)   : return 101
-        case .ok(_)                   : return 200
+        case .ok(_, _)                : return 200
         case .created                 : return 201
         case .accepted                : return 202
         case .movedPermanently        : return 301
+        case .notModified             : return 304
         case .badRequest(_)           : return 400
         case .unauthorized            : return 401
         case .forbidden               : return 403
@@ -110,10 +112,11 @@ public enum HttpResponse {
     func reasonPhrase() -> String {
         switch self {
         case .switchProtocols(_, _)    : return "Switching Protocols"
-        case .ok(_)                    : return "OK"
+        case .ok(_, _)                 : return "OK"
         case .created                  : return "Created"
         case .accepted                 : return "Accepted"
         case .movedPermanently         : return "Moved Permanently"
+        case .notModified              : return "Not Modified"
         case .badRequest(_)            : return "Bad Request"
         case .unauthorized             : return "Unauthorized"
         case .forbidden                : return "Forbidden"
@@ -130,7 +133,11 @@ public enum HttpResponse {
             for (key, value) in switchHeaders {
                 headers[key] = value
             }
-        case .ok(let body):
+        case .ok(let body, let hasEtag):
+            if (hasEtag != nil)
+            {
+                headers["E-Tag"] = hasEtag!;
+            }
             switch body {
             case .text(_)   : headers["Content-Type"] = "text/plain"
             case .json(_)   : headers["Content-Type"] = "application/json"
@@ -153,7 +160,7 @@ public enum HttpResponse {
     
     func content() -> (length: Int, write: ((HttpResponseBodyWriter) throws -> Void)?) {
         switch self {
-        case .ok(let body)             : return body.content()
+        case .ok(let body, _) : return body.content()
         case .badRequest(let body)     : return body?.content() ?? (-1, nil)
         case .raw(_, _, _, let writer) : return (-1, writer)
         default                        : return (-1, nil)

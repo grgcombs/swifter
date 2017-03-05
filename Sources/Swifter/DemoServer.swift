@@ -33,7 +33,7 @@ public func demoServer(_ publicDir: String) -> HttpServer {
         }
     }
     
-    server["/magic"] = { .ok(.html("You asked for " + $0.path)) }
+    server["/magic"] = { .ok(.html("You asked for " + $0.path), nil) }
     
     server["/test/:param1/:param2"] = { r in
         scopes {
@@ -100,7 +100,7 @@ public func demoServer(_ publicDir: String) -> HttpServer {
         for multipart in r.parseMultiPartFormData() {
             response += "Name: \(multipart.name) File name: \(multipart.fileName) Size: \(multipart.body.count)<br>"
         }
-        return HttpResponse.ok(.html(response))
+        return HttpResponse.ok(.html(response),nil)
     }
     
     server.GET["/login"] = scopes {
@@ -138,7 +138,7 @@ public func demoServer(_ publicDir: String) -> HttpServer {
     
     server.POST["/login"] = { r in
         let formFields = r.parseUrlencodedForm()
-        return HttpResponse.ok(.html(formFields.map({ "\($0.0) = \($0.1)" }).joined(separator: "<br>")))
+        return HttpResponse.ok(.html(formFields.map({ "\($0.0) = \($0.1)" }).joined(separator: "<br>")), nil)
     }
     
     server["/demo"] = scopes {
@@ -163,11 +163,11 @@ public func demoServer(_ publicDir: String) -> HttpServer {
     server["/long"] = { r in
         var longResponse = ""
         for k in 0..<1000 { longResponse += "(\(k)),->" }
-        return .ok(.html(longResponse))
+        return .ok(.html(longResponse), nil)
     }
     
     server["/wildcard/*/test/*/:param"] = { r in
-        return .ok(.html(r.path))
+        return .ok(.html(r.path), nil)
     }
     
     server["/stream"] = { r in
